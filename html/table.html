@@ -12,6 +12,76 @@
     />
   </head>
   <body>
+    <!---
+
+      1) HTML (HyperText Markup Language):
+      HTML is used to create the structure of a webpage.
+      It organizes content like text, images, links, tables, audio, and video.
+
+      2) Tag:
+      A tag is written inside angle brackets.
+      Examples: <table>, <tr>, <td>, <th>, <head>, <body>.
+      Most tags have opening and closing forms: <p>...</p>
+
+      3) Element:
+      An element is the complete block:
+      opening tag + content + closing tag.
+      Example: <td>26</td>
+
+      4) Attribute:
+      Attributes add extra information to tags.
+      Example: class="table text-center"
+      Here, class connects HTML with CSS/Bootstrap styling.
+
+      5) Table Basics:
+      <table> -> main container for table data
+      <tr>    -> table row
+      <th>    -> header cell (usually bold and centered)
+      <td>    -> normal data cell
+
+      6) Table Sections:
+      <thead> -> groups header rows
+      <tbody> -> groups body/data rows
+      (Optional) <tfoot> -> groups footer rows (totals, summary)
+
+      7) Why Use Tables:
+      Use tables for tabular data (rows and columns), such as student lists,
+      marksheets, pricing lists, attendance records, etc.
+      Do not use tables for full-page layout design.
+
+      8) Bootstrap in This File:
+      Bootstrap CSS is linked in <head>, so class names style the table quickly.
+      Common classes used here:
+      - table          -> base Bootstrap table style
+      - text-center    -> centers text
+      - table-hover    -> highlights row on mouse hover
+      - table-responsive -> makes table scroll on small screens (usually on wrapper div)
+      - bg-danger/bg-primary/bg-warning -> background utility colors
+
+      9) Better Responsive Pattern:
+      Recommended:
+      <div class="table-responsive">
+        <table class="table">...</table>
+      </div>
+      This gives horizontal scroll on smaller devices.
+
+      10) Accessibility Tips:
+      - Use <th> for heading cells.
+      - For complex tables, use scope="col" or scope="row" in <th>.
+      - Keep column titles clear and meaningful.
+
+      11) Good Coding Practices:
+      - Keep consistent indentation.
+      - Use semantic structure (<thead>, <tbody>).
+      - Avoid repeating same demo data in real projects.
+      - Use CSS classes instead of old HTML presentational attributes.
+
+      12) Audio/Video Quick Note:
+      HTML also supports multimedia:
+      - <audio controls src="song.mp3"></audio>
+      - <video controls width="400" src="movie.mp4"></video>
+      Important attributes: controls, autoplay, loop, muted.
+    -->
     <!-- <h1>Hello-Bootstrap</h1> -->
     <table class="table text-center table-hover table-responsive">
       <thead class="bg-danger">
