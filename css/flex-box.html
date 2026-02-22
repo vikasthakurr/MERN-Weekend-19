@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .container {
+        width: 100vw;
+        height: 100vh;
+        background-color: beige;
+        display: flex;
+        /* flex-direction: row; */
+        /* flex-flow: row wrap; */
+        /* flex-wrap: wrap-reverse; */
+        justify-content: center;
+        align-items: center;
+      }
+      .child {
+        width: 100px;
+        height: 100px;
+        background-color: red;
+        margin: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .child-2 {
+        /* align-self: flex-start; */
+        /* flex-basis: 200px; */
+        /* flex-grow: 2; */
+        /* flex-shrink: 2; */
+        order: 1;
+      }
+      .child-3 {
+        order: -1;
+      }
+      .child-1 {
+        order: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="child child-1">item-1</div>
+      <div class="child child-2">item-2</div>
+      <div class="child child-3">item-3</div>
+      <!-- <div class="child child-4">item-4</div>
+      <div class="child child-5">item-5</div>
+      <div class="child child-6">item-6</div>
+      <div class="child child-7">item-7</div>
+      <div class="child child-8">item-8</div>
+      <div class="child child-9">item-9</div>
+      <div class="child child-10">item-10</div>
+      <div class="child child-11">item-11</div>
+      <div class="child child-12">item-12</div>
+      <div class="child child-13">item-13</div>
+      <div class="child child-14">item-14</div>
+      <div class="child child-15">item-15</div> -->
+    </div>
+  </body>
+</html>
