@@ -5,16 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
+        /*
+          CSS filter theory:
+          - `filter` applies visual effects to an element (image, video, div, etc.).
+          - Multiple effects can be chained in one line, e.g.:
+            filter: blur(1px) contrast(120%);
+          - In this demo, keep only one `filter` line active at a time
+            to clearly observe each effect.
+        */
         img{
+            /* blur(px): increases softness; higher px = more blur */
             /* filter: blur(1px)   ; */
+
+            /* brightness(%): 100% is original, <100% darker, >100% brighter */
             /* filter: brightness(10%); */
+
+            /* contrast(%): 100% original, higher values increase difference */
             /* filter: contrast(150%); */
+
+            /* sepia(%): adds warm brown vintage tone; default is 100% */
             /* filter: sepia(); */
         }
 
     </style>
   </head>
   <body>
+    <!--
+      Learning task:
+      1) Uncomment one filter at a time.
+      2) Change values gradually (e.g., 50%, 100%, 150%).
+      3) Compare visual output to understand each effect clearly.
+    -->
     <img
       width="400px"
       src="https://images.pexels.com/photos/36044200/pexels-photo-36044200.jpeg"

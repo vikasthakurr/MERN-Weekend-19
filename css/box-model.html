@@ -5,28 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
+      /* Universal reset removes browser default spacing. */
       * {
         margin: 0;
         padding: 0;
+        /* border-box => width/height include content + padding + border. */
         box-sizing: border-box;
       }
 
+      /* Parent box to visualize how child spacing behaves inside/outside. */
       .container {
         width: 400px;
         height: 400px;
         background-color: beige;
       }
+
+      /*
+        Box model theory (inside -> outside):
+        1) content: actual text/image area
+        2) padding: space around content (inside element)
+        3) border: line around padding/content
+        4) margin: space outside element (separates from others)
+      */
       .child {
+        /* With border-box, final rendered box remains 200x200 total. */
         width: 200px;
         height: 200px;
         background-color: red;
+        /* Adds inner space; content area shrinks to keep total size fixed. */
         padding: 100px;
+        /* Uncomment border to see border layer in the model. */
         /* border: 2px solid black; */
+        /* Margin creates outer gap between .child and .container edges. */
         margin: 50px;
       }
     </style>
   </head>
   <body>
+    <!--
+      Practical note:
+      - Increase/decrease padding to see inner spacing change.
+      - Increase/decrease margin to see outer spacing change.
+      - Toggle border and box-sizing to compare sizing behavior.
+    -->
     <div class="container">
       <div class="child">vikas</div>
     </div>

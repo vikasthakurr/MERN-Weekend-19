@@ -5,40 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <style>
+      /* Basic reset for predictable spacing and sizing in all elements. */
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
+      /*
+        FLEXBOX DEFINITION:
+        Flexbox (Flexible Box Layout) is a one-dimensional CSS layout system
+        used to align and distribute space among items in a row or a column.
+
+        Key terms:
+        - Flex Container: parent with `display: flex`
+        - Flex Items: direct children of that container
+        - Main Axis: direction items are laid out (`row` or `column`)
+        - Cross Axis: perpendicular axis to the main axis
+      */
       .container {
         width: 100vw;
         height: 100vh;
         background-color: beige;
+
+        /* Makes this element a flex container; children become flex items. */
         display: flex;
+
+        /*
+          flex-direction defines the MAIN AXIS direction:
+          - row (default): left -> right
+          - row-reverse: right -> left
+          - column: top -> bottom
+          - column-reverse: bottom -> top
+        */
         /* flex-direction: row; */
+
+        /*
+          flex-flow is shorthand for:
+          flex-direction + flex-wrap
+          Example: row wrap
+        */
         /* flex-flow: row wrap; */
+
+        /*
+          flex-wrap controls whether items stay in one line:
+          - nowrap (default): single line
+          - wrap: items move to next line if needed
+          - wrap-reverse: wrap in reverse cross-axis direction
+        */
         /* flex-wrap: wrap-reverse; */
+
+        /*
+          justify-content aligns items along the MAIN AXIS.
+          center => items grouped at center on main axis.
+        */
         justify-content: center;
+
+        /*
+          align-items aligns items along the CROSS AXIS.
+          center => items centered vertically (for row direction).
+        */
         align-items: center;
       }
+
+      /* Generic style for each flex item box. */
       .child {
         width: 100px;
         height: 100px;
         background-color: red;
         margin: 10px;
+
+        /* Nested flex to center text inside each item box. */
         display: flex;
         align-items: center;
         justify-content: center;
       }
+
+      /*
+        Item-level Flexbox properties (applied to individual flex items):
+      */
       .child-2 {
+        /* align-self overrides container's align-items for this item only. */
         /* align-self: flex-start; */
+
+        /*
+          flex-basis sets initial main-axis size before grow/shrink.
+          In row direction, it behaves like initial width.
+        */
         /* flex-basis: 200px; */
+
+        /*
+          flex-grow defines how extra free space is shared.
+          2 means this item grows twice as much as items with grow:1.
+        */
         /* flex-grow: 2; */
+
+        /*
+          flex-shrink defines how item shrinks when space is insufficient.
+          Higher value => shrinks more compared to others.
+        */
         /* flex-shrink: 2; */
+
+        /*
+          order controls visual order (not HTML source order):
+          default is 0, higher values appear later.
+        */
         order: 1;
       }
       .child-3 {
+        /* Negative order appears earlier than default order:0 items. */
         order: -1;
       }
       .child-1 {
@@ -47,6 +122,14 @@
     </style>
   </head>
   <body>
+    <!--
+      Quick learning checklist:
+      1) Change flex-direction and observe main/cross axis swap.
+      2) Try justify-content: space-between / space-around / space-evenly.
+      3) Uncomment wrap and add more items to see line wrapping.
+      4) Uncomment grow/shrink/basis to understand space distribution.
+      5) Modify order values and compare with original HTML order.
+    -->
     <div class="container">
       <div class="child child-1">item-1</div>
       <div class="child child-2">item-2</div>

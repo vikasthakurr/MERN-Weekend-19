@@ -6,17 +6,61 @@
     <title>Document</title>
 
     <style>
+      /*
+        CSS UNITS (definition):
+        A CSS unit defines the measurement used for size-related properties
+        such as width, height, font-size, margin, and padding.
+
+        Two main categories:
+        1) Absolute units: fixed size (e.g., px)
+        2) Relative units: size depends on another reference (e.g., rem, em, %, vw, vh)
+      */
       @import url("https://fonts.googleapis.com/css2?family=Betania+Patmos&display=swap");
+
+      /*
+        `px` (pixel): absolute unit.
+        - Fixed and precise.
+        - Useful when exact control is needed.
+      */
       html {
+        /*
+          Root font size = 32px.
+          `rem` values in the page will use this as reference.
+          1rem = 32px in this document.
+        */
         font-size: 32px;
       }
+
+      /*
+        Container uses `px` for fixed dimensions:
+        width: 800px and height: 800px stay constant regardless of parent size.
+      */
       .container {
         width: 800px;
         height: 800px;
         background-color: red;
+
+        /*
+          If uncommented:
+          `em` is relative to this element's own font-size.
+          Example: if font-size is 20px here, then 1em inside this container is 20px.
+        */
         /* font-size: 20px; */
       }
+
+      /*
+        Relative unit examples (theory):
+        - `%`  : relative to parent size (for width/height) or inherited context.
+        - `em` : relative to current element font-size (can compound in nesting).
+        - `rem`: relative to root (html) font-size; stable and predictable.
+        - `vw` : 1% of viewport width.
+        - `vh` : 1% of viewport height.
+      */
       .container p {
+        /*
+          `1rem` here means 1 x root font-size.
+          Since html font-size is 32px, paragraph font-size becomes 32px.
+        */
         font-size: 1rem;
         /* font-family:; */
         /* font-family: "Betania Patmos", cursive; */
@@ -27,6 +71,12 @@
     </style>
   </head>
   <body>
+    <!--
+      Practice ideas for students:
+      1) Change html font-size and observe how rem text scales.
+      2) Set container font-size and use em in paragraph to compare em vs rem.
+      3) Try width: 80% and width: 80vw to see parent-based vs viewport-based sizing.
+    -->
     <div class="container">
       <p>
         Lorem ipsum dolor, sit amet consectetur adipisicing elit. Vitae,
