@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <input
+      type="text"
+      name=""
+      id="username"
+      placeholder="enter your username"
+    />
+    <button id="getprofile">Get Profile</button>
+    <script>
+      const btn = document.querySelector("#getprofile");
+      btn.addEventListener("click", () => {
+        const username = document.querySelector("#username").value;
+        fetch(`https://api.github.com/users/${username}`)
+          .then((res) => res.json())
+          .then((data) => {
+            const img = document.createElement("img");
+            img.setAttribute("src", data.avatar_url);
+
+            const h1 = document.createElement("h1");
+            h1.innerText = data.followers_url;
+            document.body.appendChild(h1);
+            document.body.appendChild(img);
+          });
+      });
+    </script>
+  </body>
+</html>

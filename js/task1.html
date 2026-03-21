@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .container {
+        width: 700px;
+        height: 600px;
+        background-color: beige;
+      }
+      .square {
+        width: 100px;
+        height: 100px;
+        background-color: red;
+        margin: 10px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+
+  <body>
+    <input id="input" type="text" placeholder="enter any number" />
+    <button id="btn">Generate</button>
+
+    <div class="container"></div>
+
+    <script>
+      const btn = document.querySelector("#btn");
+
+      btn.addEventListener("click", () => {
+        const inputValue = document.querySelector("#input").value;
+        for (let i = 0; i < inputValue; i++) {
+          const shape = document.createElement("div");
+          shape.classList.add("square");
+          document.querySelector(".container").appendChild(shape);
+        }
+      });
+    </script>
+  </body>
+</html>
