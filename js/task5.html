@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Fetcher</title>
+    <style>
+      /* ── Reset & base ── */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #0d0d0d;
+        color: #f0f0f0;
+        min-height: 100vh;
+      }
+
+      /* ── Header / search bar ── */
+      header {
+        background: #141414;
+        padding: 20px 40px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 2px solid #e50914;
+      }
+
+      header h1 {
+        font-size: 1.6rem;
+        color: #e50914;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+
+      /* Search input wrapper */
+      .search-wrapper {
+        display: flex;
+        flex: 1;
+        max-width: 500px;
+        gap: 8px;
+      }
+
+      #searchInput {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: 6px;
+        border: 1px solid #333;
+        background: #1e1e1e;
+        color: #f0f0f0;
+        font-size: 0.95rem;
+        outline: none;
+        transition: border 0.2s;
+      }
+
+      #searchInput:focus {
+        border-color: #e50914;
+      }
+
+      #searchBtn {
+        padding: 10px 20px;
+        background: #e50914;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.95rem;
+        transition: background 0.2s;
+      }
+
+      #searchBtn:hover {
+        background: #b0060f;
+      }
+
+      /* ── Filter tabs ── */
+      .filters {
+        display: flex;
+        gap: 10px;
+        padding: 20px 40px 0;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        padding: 8px 18px;
+        border-radius: 20px;
+        border: 1px solid #444;
+        background: transparent;
+        color: #aaa;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+
+      .filter-btn.active,
+      .filter-btn:hover {
+        background: #e50914;
+        color: white;
+        border-color: #e50914;
+      }
+
+      /* ── Section title ── */
+      .section-title {
+        padding: 20px 40px 10px;
+        font-size: 1.2rem;
+        color: #ccc;
+        letter-spacing: 0.5px;
+      }
+
+      /* ── Movie grid ── */
+      #movieGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 20px;
+        padding: 10px 40px 40px;
+      }
+
+      /* ── Movie card ── */
+      .movie-card {
+        background: #1a1a1a;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative;
+      }
+
+      .movie-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(229, 9, 20, 0.3);
+      }
+
+      .movie-card img {
+        width: 100%;
+        aspect-ratio: 2/3;
+        object-fit: cover;
+        display: block;
+      }
+
+      /* Placeholder when no poster available */
+      .no-poster {
+        width: 100%;
+        aspect-ratio: 2/3;
+        background: #2a2a2a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        color: #666;
+        text-align: center;
+        padding: 10px;
+      }
+
+      .card-info {
+        padding: 10px;
+      }
+
+      .card-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 4px;
+      }
+
+      .card-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: #888;
+      }
+
+      /* Rating badge */
+      .rating {
+        color: #f5c518;
+        font-weight: 700;
+      }
+
+      /* ── Loading spinner ── */
+      #loader {
+        display: none;
+        text-align: center;
+        padding: 60px;
+        font-size: 1rem;
+        color: #888;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #333;
+        border-top-color: #e50914;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 16px;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* ── Error message ── */
+      #error {
+        display: none;
+        text-align: center;
+        padding: 40px;
+        color: #e50914;
+        font-size: 1rem;
+      }
+
+      /* ── Modal overlay ── */
+      #modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      #modal.open {
+        display: flex;
+      }
+
+      .modal-content {
+        background: #1a1a1a;
+        border-radius: 12px;
+        max-width: 700px;
+        width: 100%;
+        display: flex;
+        gap: 24px;
+        padding: 24px;
+        position: relative;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .modal-poster {
+        width: 180px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        object-fit: cover;
+      }
+
+      .modal-details h2 {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+      }
+
+      .modal-details .tagline {
+        font-style: italic;
+        color: #888;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+      }
+
+      .modal-details p {
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #ccc;
+        margin-bottom: 10px;
+      }
+
+      .modal-details .meta-row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        font-size: 0.85rem;
+        color: #aaa;
+      }
+
+      .modal-details .meta-row span {
+        background: #2a2a2a;
+        padding: 4px 10px;
+        border-radius: 4px;
+      }
+
+      #closeModal {
+        position: absolute;
+        top: 14px;
+        right: 16px;
+        background: none;
+        border: none;
+        color: #aaa;
+        font-size: 1.5rem;
+        cursor: pointer;
+        line-height: 1;
+      }
+
+      #closeModal:hover {
+        color: #e50914;
+      }
+
+      /* ── Responsive ── */
+      @media (max-width: 600px) {
+        header { padding: 14px 16px; flex-wrap: wrap; }
+        .filters, .section-title, #movieGrid { padding-left: 16px; padding-right: 16px; }
+        .modal-content { flex-direction: column; }
+        .modal-poster { width: 100%; max-height: 300px; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- ── HEADER ── -->
+    <header>
+      <h1>🎬 MovieFlix</h1>
+      <div class="search-wrapper">
+        <!--
+          Search input: user types a movie name here.
+          We listen for the 'keydown' event to support pressing Enter.
+        -->
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search movies..."
+          aria-label="Search movies"
+        />
+        <button id="searchBtn">Search</button>
+      </div>
+    </header>
+
+    <!-- ── FILTER TABS ── -->
+    <!--
+      Each button has a data-category attribute.
+      We read this value in JS to know which TMDB endpoint to call.
+      TMDB endpoints used:
+        popular   → /3/movie/popular
+        top_rated → /3/movie/top_rated
+        upcoming  → /3/movie/upcoming
+    -->
+    <div class="filters">
+      <button class="filter-btn active" data-category="popular">Popular</button>
+      <button class="filter-btn" data-category="top_rated">Top Rated</button>
+      <button class="filter-btn" data-category="upcoming">Upcoming</button>
+    </div>
+
+    <p class="section-title" id="sectionTitle">Popular Movies</p>
+
+    <!-- ── LOADER ── -->
+    <div id="loader">
+      <div class="spinner"></div>
+      <p>Fetching movies...</p>
+    </div>
+
+    <!-- ── ERROR ── -->
+    <div id="error"></div>
+
+    <!-- ── MOVIE GRID ── -->
+    <!--
+      Cards are injected here dynamically by JavaScript.
+      Each card is created with document.createElement() and appended here.
+    -->
+    <div id="movieGrid"></div>
+
+    <!-- ── MOVIE DETAIL MODAL ── -->
+    <!--
+      Hidden by default. Clicking a card opens this modal
+      and fills it with that movie's details.
+    -->
+    <div id="modal" role="dialog" aria-modal="true" aria-label="Movie details">
+      <div class="modal-content">
+        <button id="closeModal" aria-label="Close modal">&times;</button>
+        <img id="modalPoster" class="modal-poster" src="" alt="" />
+        <div class="modal-details">
+          <h2 id="modalTitle"></h2>
+          <p class="tagline" id="modalTagline"></p>
+          <div class="meta-row" id="modalMeta"></div>
+          <p id="modalOverview"></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /*
+        MOVIE FETCHER — TMDB API PROJECT
+        ==================================
+
+        WHAT THIS PROJECT COVERS:
+        - fetch() with async/await
+        - API key usage and URL building
+        - Dynamic DOM creation (cards, modal)
+        - Event delegation
+        - Debounced search input
+        - Loading/error state management
+
+        HOW TO GET YOUR TMDB API KEY:
+        1. Go to https://www.themoviedb.org/
+        2. Create a free account
+        3. Go to Settings → API → Request an API key
+        4. Copy your v3 API key and paste it below
+
+        TMDB IMAGE BASE URL:
+        Poster paths from the API are relative (e.g. "/abc123.jpg").
+        Prepend the base URL to get the full image URL:
+        https://image.tmdb.org/t/p/w500 + poster_path
+      */
+
+      // ── CONFIG ──────────────────────────────────────────────
+      // Replace with your own TMDB v3 API key
+      const API_KEY = "YOUR_TMDB_API_KEY_HERE";
+      const BASE_URL = "https://api.themoviedb.org/3";
+      const IMG_BASE = "https://image.tmdb.org/t/p/w500";
+
+      // ── DOM REFERENCES ──────────────────────────────────────
+      const movieGrid    = document.getElementById("movieGrid");
+      const loader       = document.getElementById("loader");
+      const errorDiv     = document.getElementById("error");
+      const searchInput  = document.getElementById("searchInput");
+      const searchBtn    = document.getElementById("searchBtn");
+      const sectionTitle = document.getElementById("sectionTitle");
+      const modal        = document.getElementById("modal");
+      const closeModal   = document.getElementById("closeModal");
+      const filterBtns   = document.querySelectorAll(".filter-btn");
+
+      // ── STATE ────────────────────────────────────────────────
+      let currentCategory = "popular"; // tracks which filter tab is active
+
+      // ── UTILITY: show/hide loader and error ─────────────────
+      function showLoader() {
+        loader.style.display = "block";
+        movieGrid.innerHTML  = "";
+        errorDiv.style.display = "none";
+      }
+
+      function hideLoader() {
+        loader.style.display = "none";
+      }
+
+      function showError(msg) {
+        hideLoader();
+        errorDiv.style.display = "block";
+        errorDiv.textContent   = msg;
+      }
+
+      // ── FETCH MOVIES BY CATEGORY ─────────────────────────────
+      /*
+        TMDB endpoint: GET /3/movie/{category}
+        Categories: popular | top_rated | upcoming
+        Returns: { results: [ { id, title, poster_path, vote_average, release_date, overview } ] }
+      */
+      async function fetchMovies(category) {
+        showLoader();
+        try {
+          const url      = `${BASE_URL}/movie/${category}?api_key=${API_KEY}&language=en-US&page=1`;
+          const response = await fetch(url);
+
+          // If the server returned an error status (e.g. 401 invalid key)
+          if (!response.ok) {
+            throw new Error(`API error: ${response.status} — check your API key`);
+          }
+
+          const data = await response.json(); // parse JSON body
+          hideLoader();
+          renderMovies(data.results);         // pass the array of movies to render
+        } catch (err) {
+          showError(`Something went wrong: ${err.message}`);
+        }
+      }
+
+      // ── SEARCH MOVIES ────────────────────────────────────────
+      /*
+        TMDB endpoint: GET /3/search/movie?query=TERM
+        Returns same shape as category endpoint.
+      */
+      async function searchMovies(query) {
+        if (!query.trim()) return; // ignore empty searches
+        showLoader();
+        sectionTitle.textContent = `Results for "${query}"`;
+        try {
+          const url      = `${BASE_URL}/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=en-US`;
+          const response = await fetch(url);
+
+          if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+          const data = await response.json();
+          hideLoader();
+
+          if (data.results.length === 0) {
+            showError(`No movies found for "${query}"`);
+          } else {
+            renderMovies(data.results);
+          }
+        } catch (err) {
+          showError(`Something went wrong: ${err.message}`);
+        }
+      }
+
+      // ── FETCH MOVIE DETAILS (for modal) ──────────────────────
+      /*
+        TMDB endpoint: GET /3/movie/{movie_id}
+        Returns detailed info: tagline, genres, runtime, etc.
+      */
+      async function fetchMovieDetails(id) {
+        try {
+          const url      = `${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US`;
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("Could not load details");
+          return await response.json();
+        } catch (err) {
+          return null;
+        }
+      }
+
+      // ── RENDER MOVIE CARDS ───────────────────────────────────
+      /*
+        For each movie object in the array:
+        1. Create a .movie-card div
+        2. Set a data-id attribute (used to fetch details on click)
+        3. Build the poster image or a fallback placeholder
+        4. Add title, rating, and year
+        5. Append to the grid
+      */
+      function renderMovies(movies) {
+        movieGrid.innerHTML = ""; // clear previous results
+
+        movies.forEach((movie) => {
+          // Create the card container
+          const card = document.createElement("div");
+          card.classList.add("movie-card");
+          card.dataset.id = movie.id; // store movie id for detail fetch
+
+          // Build poster or placeholder
+          const posterHTML = movie.poster_path
+            ? `<img src="${IMG_BASE}${movie.poster_path}" alt="${movie.title} poster" loading="lazy" />`
+            : `<div class="no-poster">No Image Available</div>`;
+
+          // Extract release year from "YYYY-MM-DD" string
+          const year = movie.release_date ? movie.release_date.split("-")[0] : "N/A";
+
+          // Rating: TMDB gives vote_average out of 10
+          const rating = movie.vote_average ? movie.vote_average.toFixed(1) : "N/A";
+
+          card.innerHTML = `
+            ${posterHTML}
+            <div class="card-info">
+              <p class="card-title">${movie.title}</p>
+              <div class="card-meta">
+                <span>${year}</span>
+                <span class="rating">⭐ ${rating}</span>
+              </div>
+            </div>
+          `;
+
+          movieGrid.appendChild(card);
+        });
+      }
+
+      // ── OPEN MODAL WITH MOVIE DETAILS ────────────────────────
+      async function openModal(movieId) {
+        const movie = await fetchMovieDetails(movieId);
+        if (!movie) return;
+
+        // Fill modal fields
+        document.getElementById("modalTitle").textContent    = movie.title;
+        document.getElementById("modalTagline").textContent  = movie.tagline || "";
+        document.getElementById("modalOverview").textContent = movie.overview || "No description available.";
+
+        // Poster
+        const posterEl = document.getElementById("modalPoster");
+        if (movie.poster_path) {
+          posterEl.src = `${IMG_BASE}${movie.poster_path}`;
+          posterEl.alt = `${movie.title} poster`;
+          posterEl.style.display = "block";
+        } else {
+          posterEl.style.display = "none";
+        }
+
+        // Meta row: rating, year, runtime, genres
+        const genres  = movie.genres ? movie.genres.map(g => g.name).join(", ") : "";
+        const runtime = movie.runtime ? `${movie.runtime} min` : "";
+        const year    = movie.release_date ? movie.release_date.split("-")[0] : "";
+        const rating  = movie.vote_average ? `⭐ ${movie.vote_average.toFixed(1)} / 10` : "";
+
+        document.getElementById("modalMeta").innerHTML = [rating, year, runtime, genres]
+          .filter(Boolean)                              // remove empty strings
+          .map(item => `<span>${item}</span>`)
+          .join("");
+
+        // Show the modal
+        modal.classList.add("open");
+        document.body.style.overflow = "hidden"; // prevent background scroll
+      }
+
+      // ── CLOSE MODAL ──────────────────────────────────────────
+      function closeModalFn() {
+        modal.classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      closeModal.addEventListener("click", closeModalFn);
+
+      // Close modal when clicking the dark overlay (outside the content box)
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModalFn();
+      });
+
+      // Close modal with Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModalFn();
+      });
+
+      // ── EVENT DELEGATION: card clicks ────────────────────────
+      /*
+        Instead of adding a click listener to every card,
+        we add ONE listener to the grid (parent) and check e.target.
+        This is EVENT DELEGATION — efficient and works for dynamic elements.
+      */
+      movieGrid.addEventListener("click", (e) => {
+        // Walk up the DOM from the clicked element to find the card
+        const card = e.target.closest(".movie-card");
+        if (card) {
+          openModal(card.dataset.id); // use the stored movie id
+        }
+      });
+
+      // ── FILTER BUTTONS ───────────────────────────────────────
+      filterBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          // Remove active class from all buttons, add to clicked one
+          filterBtns.forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+
+          currentCategory = btn.dataset.category;
+
+          // Update section title (convert "top_rated" → "Top Rated")
+          sectionTitle.textContent = btn.textContent + " Movies";
+
+          fetchMovies(currentCategory);
+        });
+      });
+
+      // ── SEARCH ───────────────────────────────────────────────
+      searchBtn.addEventListener("click", () => {
+        searchMovies(searchInput.value);
+      });
+
+      // Also trigger search on Enter key press
+      searchInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") searchMovies(searchInput.value);
+      });
+
+      // ── DEBOUNCED LIVE SEARCH ────────────────────────────────
+      /*
+        As the user types, we wait 500ms after they stop before searching.
+        This avoids making an API call on every single keystroke.
+        This is the DEBOUNCE pattern from debounce.js!
+      */
+      let debounceTimer;
+      searchInput.addEventListener("input", () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          const query = searchInput.value.trim();
+          if (query.length > 2) {
+            // Only search if user typed more than 2 characters
+            searchMovies(query);
+          } else if (query.length === 0) {
+            // If input is cleared, go back to the current category
+            sectionTitle.textContent = document.querySelector(".filter-btn.active").textContent + " Movies";
+            fetchMovies(currentCategory);
+          }
+        }, 500);
+      });
+
+      // ── INITIAL LOAD ─────────────────────────────────────────
+      // Fetch popular movies when the page first loads
+      fetchMovies("popular");
+    </script>
+  </body>
+</html>

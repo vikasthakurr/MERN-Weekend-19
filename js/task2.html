@@ -42,18 +42,49 @@
 
     <div class="container"></div>
     <script>
+      /*
+        TASK 2: Generate Custom Shapes with Color
+        ==========================================
+        GOAL: Read a number, color, and shape name from inputs.
+        Create that many <div> elements with the chosen shape class
+        and background color, then add them to the container.
+
+        CONCEPTS PRACTICED:
+        - Reading multiple input values (text, color picker)
+        - Using input value as a CSS class name dynamically
+        - Setting inline styles with element.style.property
+        - Combining classList.add() with dynamic class names
+        - The <input type="color"> gives a hex color string (e.g. "#ff0000")
+
+        AVAILABLE SHAPE CLASSES (defined in CSS above):
+        - "square"    → 100x100px box
+        - "rectangle" → 150x100px box
+        - "circle"    → 100x100px with border-radius: 50%
+      */
+
       const btn = document.querySelector("#btn");
+
       btn.addEventListener("click", () => {
-        const shapeNumber = document.querySelector("#shapeInput").value;
-        const shapeColor = document.querySelector("#shapeColor").value;
-        const shapeName = document.querySelector("#shapeName").value;
-        // console.log(shapeNumber, shapeColor, shapeName);
+        // Read all three input values
+        const shapeNumber = document.querySelector("#shapeInput").value;  // how many
+        const shapeColor = document.querySelector("#shapeColor").value;   // hex color string
+        const shapeName = document.querySelector("#shapeName").value;     // CSS class name
+
+        // console.log(shapeNumber, shapeColor, shapeName); // useful for debugging
 
         for (let i = 0; i < shapeNumber; i++) {
+          // Create a new div element
           let shape = document.createElement("div");
+
+          // Add the shape class (e.g. "square", "circle", "rectangle")
+          // This applies the size and border-radius from CSS
           shape.classList.add(shapeName);
+
+          // Set the background color using inline style
+          // element.style.property = value (camelCase for CSS properties)
           shape.style.backgroundColor = shapeColor;
 
+          // Add the shape to the container div on the page
           document.querySelector(".container").appendChild(shape);
         }
       });

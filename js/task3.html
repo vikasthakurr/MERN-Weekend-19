@@ -23,17 +23,51 @@
     <div class="container"></div>
 
     <script>
+      /*
+        TASK 3: Click to Spawn Colored Circles
+        ========================================
+        GOAL: Every time the user clicks inside the container,
+        create a circle at the exact click position with a random color.
+
+        CONCEPTS PRACTICED:
+        - Event object properties: e.clientX, e.clientY
+        - Math.random() for picking a random array element
+        - Math.floor() to convert float to integer index
+        - Positioning elements with position: absolute + left/top
+        - Centering the circle on the cursor (subtract half width/height)
+
+        HOW POSITIONING WORKS:
+        - The circle has position: absolute (set in CSS)
+        - e.clientX = horizontal distance from left edge of viewport
+        - e.clientY = vertical distance from top edge of viewport
+        - We subtract 50 (half of 100px circle) to center it on the cursor
+          Without -50: top-left corner of circle would be at cursor
+          With -50:    center of circle is at cursor ✓
+      */
+
       const container = document.querySelector(".container");
+
       container.addEventListener("click", (e) => {
+        // Array of possible colors to pick from randomly
         let colors = ["red", "blue", "green", "black"];
+
+        // Math.random() → random float between 0 and 1 (e.g. 0.73)
+        // * colors.length → scales to 0–3.99
+        // Math.floor() → rounds down to 0, 1, 2, or 3 (valid array index)
         let randomIndex = colors[Math.floor(Math.random() * colors.length)];
-        console.log(randomIndex);
+        console.log(randomIndex); // log which color was picked
+
+        // Create a new circle div
         let shape = document.createElement("div");
         shape.classList.add("circle");
         shape.style.backgroundColor = randomIndex;
 
-        shape.style.left = e.clientX - 50 + "px";
-        shape.style.top = e.clientY - 50 + "px";
+        // Position the circle centered on where the user clicked
+        // e.clientX/Y gives the cursor position relative to the viewport
+        shape.style.left = e.clientX - 50 + "px"; // center horizontally
+        shape.style.top = e.clientY - 50 + "px";  // center vertically
+
+        // Add the circle to the container
         container.appendChild(shape);
       });
     </script>

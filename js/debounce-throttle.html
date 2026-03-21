@@ -1,28 +1,80 @@
-<!-- <!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Debounce & Throttle Demo</title>
   </head>
   <body>
-    <button id="myButton">Click Me</button>
+    <h2>Debounce & Throttle Demo</h2>
+
+    <!-- Throttle demo: button click -->
+    <button id="myButton">Click Me (Throttled)</button>
     <div id="output"></div>
 
     <script>
+      /*
+        DEBOUNCE vs THROTTLE — Interactive Demo
+        =========================================
+
+        Both techniques limit how often a function runs.
+        This file demonstrates both with a button click example.
+
+        -------------------------------------------------------
+        DEBOUNCE
+        -------------------------------------------------------
+        Waits until the user STOPS triggering the event, then fires ONCE.
+
+        How it works:
+        - Every call resets a timer.
+        - The function only runs after the delay passes with NO new calls.
+
+        Example use: search input — wait until user stops typing.
+
+        function debounce(func, delay) {
+          let timer;
+          return function (...args) {
+            clearTimeout(timer);          // cancel previous timer
+            timer = setTimeout(() => {
+              func.apply(this, args);     // run after silence
+            }, delay);
+          };
+        }
+
+        -------------------------------------------------------
+        THROTTLE
+        -------------------------------------------------------
+        Runs the function at most ONCE per interval, no matter how
+        many times it's triggered.
+
+        How it works:
+        - Checks if enough time has passed since the last call.
+        - If yes, runs the function and records the timestamp.
+        - If no, ignores the call.
+
+        Example use: scroll/resize events, button spam prevention.
+      */
+
+      // -------------------------------------------------------
+      // THROTTLE IMPLEMENTATION
+      // -------------------------------------------------------
       function throttle(func, delay) {
-        let inThrottle;
-        let lastFn;
-        let lastTime;
+        let inThrottle;   // flag: are we currently in a throttle window?
+        let lastFn;       // stores the timeout for the trailing call
+        let lastTime;     // timestamp of the last actual execution
 
         return function () {
           const context = this;
           const args = arguments;
+
           if (!inThrottle) {
+            // First call: run immediately and start the throttle window
             func.apply(context, args);
             lastTime = Date.now();
             inThrottle = true;
           } else {
+            // Within throttle window: schedule a trailing call
+            // This ensures the LAST call in the window still fires
             clearTimeout(lastFn);
             lastFn = setTimeout(
               function () {
@@ -32,53 +84,58 @@
                 }
               },
               Math.max(delay - (Date.now() - lastTime), 0),
+              // Math.max ensures we don't pass a negative delay
             );
           }
         };
       }
 
+      // -------------------------------------------------------
+      // DEBOUNCE IMPLEMENTATION
+      // -------------------------------------------------------
+      function debounce(func, delay) {
+        let timer;
+        return function (...args) {
+          clearTimeout(timer);           // reset timer on every call
+          timer = setTimeout(() => {
+            func.apply(this, args);      // only fires after 'delay' ms of silence
+          }, delay);
+        };
+      }
+
+      // -------------------------------------------------------
+      // DEMO SETUP
+      // -------------------------------------------------------
       const myButton = document.getElementById("myButton");
       const outputDiv = document.getElementById("output");
 
+      // The function we want to control
       function printClickTime() {
         const now = new Date();
         outputDiv.innerHTML += `Button clicked at: ${now.toLocaleTimeString()}<br>`;
       }
 
-      // Apply throttling to the printClickTime function with a 1-second delay
+      // Apply throttling: button can only trigger once every 2 seconds
+      // No matter how fast you click, it fires at most once per 2s
       myButton.addEventListener("click", throttle(printClickTime, 2000));
+
+      // To test debounce instead, swap the line above with:
+      // myButton.addEventListener("click", debounce(printClickTime, 1000));
+      // Then it only fires 1 second AFTER you stop clicking.
+
+      // -------------------------------------------------------
+      // SIMPLE THROTTLE (from debounce.js — easier to understand)
+      // -------------------------------------------------------
+      // function searchWithThrottle(fn, delay) {
+      //   let lastCall = 0;
+      //   return function (...args) {
+      //     let now = Date.now();
+      //     if (now - lastCall >= delay) {
+      //       fn(...args);
+      //       lastCall = now;
+      //     }
+      //   };
+      // }
     </script>
   </body>
-</html> -->
-
-
-// function searchWithDebounce(fn, delay) {
-//   let timer;
-//   return function (...args) {
-//     clearTimeout(timer);
-//     timer = setTimeout(() => {
-//       fn(...args);
-//     }, delay);
-//   };
-// }
-
-//throttle....
-
-function searchWithThrottle(fn, delay) {
-  let Lastcall = 0;
-  return function (...args) {
-    let currentCall = Date.now();
-    if (currentCall - Lastcall >= delay) {
-      fn(...args);
-      Lastcall = currentCall;
-    }
-  };
-}
-function search(name) {
-  console.log(`searching for ${name}`);
-}
-
-const searchInput = searchWithThrottle(search, 300);
-searchInput("vikas");
-searchInput("vikas singh");
-searchInput("vikas kumar thakur");
+</html>

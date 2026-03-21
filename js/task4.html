@@ -3,31 +3,461 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>GitHub Profile Finder</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        background: #0d1117;
+        color: #e6edf3;
+        font-family: "Segoe UI", sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 60px 16px;
+      }
+
+      /* ── Header ── */
+      h1.app-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #f0f6fc;
+      }
+
+      h1.app-title span {
+        color: #58a6ff;
+      }
+
+      .subtitle {
+        color: #8b949e;
+        font-size: 0.95rem;
+        margin-bottom: 36px;
+      }
+
+      /* ── Search bar ── */
+      .search-box {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+        max-width: 480px;
+        margin-bottom: 40px;
+      }
+
+      #username {
+        flex: 1;
+        padding: 12px 16px;
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        color: #e6edf3;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      #username:focus {
+        border-color: #58a6ff;
+      }
+
+      #username::placeholder {
+        color: #484f58;
+      }
+
+      #getprofile {
+        padding: 12px 22px;
+        background: #238636;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        white-space: nowrap;
+      }
+
+      #getprofile:hover {
+        background: #2ea043;
+      }
+
+      /* ── Loader ── */
+      #loader {
+        display: none;
+        width: 36px;
+        height: 36px;
+        border: 3px solid #30363d;
+        border-top-color: #58a6ff;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        margin-bottom: 30px;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      /* ── Error ── */
+      #error {
+        display: none;
+        color: #f85149;
+        background: #1c1c1c;
+        border: 1px solid #f8514940;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+      }
+
+      /* ── Profile card ── */
+      #profileCard {
+        display: none;
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 560px;
+        overflow: hidden;
+        animation: fadeIn 0.3s ease;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Top banner */
+      .card-banner {
+        height: 80px;
+        background: linear-gradient(135deg, #161b22, #1f2937);
+        border-bottom: 1px solid #30363d;
+      }
+
+      /* Avatar */
+      .card-header {
+        display: flex;
+        align-items: flex-end;
+        gap: 16px;
+        padding: 0 24px;
+        margin-top: -40px;
+        margin-bottom: 16px;
+      }
+
+      #avatar {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid #0d1117;
+        object-fit: cover;
+        background: #30363d;
+      }
+
+      .card-name {
+        padding-bottom: 6px;
+      }
+
+      .card-name h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #f0f6fc;
+      }
+
+      .card-name a {
+        font-size: 0.85rem;
+        color: #58a6ff;
+        text-decoration: none;
+      }
+
+      .card-name a:hover {
+        text-decoration: underline;
+      }
+
+      /* Bio */
+      #bio {
+        padding: 0 24px 16px;
+        font-size: 0.9rem;
+        color: #8b949e;
+        line-height: 1.5;
+        border-bottom: 1px solid #21262d;
+      }
+
+      /* Stats row */
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        padding: 16px 24px;
+        border-bottom: 1px solid #21262d;
+      }
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2px;
+      }
+
+      .stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #f0f6fc;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+        color: #8b949e;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* Info rows */
+      .info-list {
+        padding: 16px 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.88rem;
+        color: #8b949e;
+      }
+
+      .info-item .icon {
+        font-size: 1rem;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
+      }
+
+      .info-item span {
+        color: #c9d1d9;
+      }
+
+      /* GitHub button */
+      .view-btn {
+        display: block;
+        margin: 0 24px 20px;
+        padding: 10px;
+        text-align: center;
+        background: #21262d;
+        color: #c9d1d9;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border: 1px solid #30363d;
+        transition: background 0.2s, color 0.2s;
+      }
+
+      .view-btn:hover {
+        background: #30363d;
+        color: #f0f6fc;
+      }
+
+      @media (max-width: 480px) {
+        h1.app-title { font-size: 1.5rem; }
+        .stats { gap: 8px; }
+      }
+    </style>
   </head>
   <body>
-    <input
-      type="text"
-      name=""
-      id="username"
-      placeholder="enter your username"
-    />
-    <button id="getprofile">Get Profile</button>
+
+    <h1 class="app-title">GitHub <span>Profile</span> Finder</h1>
+    <p class="subtitle">Search any GitHub user by their username</p>
+
+    <!-- Search -->
+    <div class="search-box">
+      <input type="text" id="username" placeholder="e.g. torvalds" />
+      <button id="getprofile">Search</button>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader"></div>
+
+    <!-- Error -->
+    <div id="error"></div>
+
+    <!-- Profile Card (hidden until a search succeeds) -->
+    <div id="profileCard">
+      <div class="card-banner"></div>
+
+      <div class="card-header">
+        <img id="avatar" src="" alt="avatar" />
+        <div class="card-name">
+          <h2 id="fullName"></h2>
+          <a id="loginLink" href="#" target="_blank"></a>
+        </div>
+      </div>
+
+      <p id="bio"></p>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-value" id="repoCount">0</span>
+          <span class="stat-label">Repos</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="followerCount">0</span>
+          <span class="stat-label">Followers</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="followingCount">0</span>
+          <span class="stat-label">Following</span>
+        </div>
+      </div>
+
+      <div class="info-list">
+        <div class="info-item" id="locationItem">
+          <span class="icon">📍</span>
+          <span id="location"></span>
+        </div>
+        <div class="info-item" id="blogItem">
+          <span class="icon">🔗</span>
+          <a id="blog" href="#" target="_blank" style="color:#58a6ff;"></a>
+        </div>
+        <div class="info-item" id="joinedItem">
+          <span class="icon">📅</span>
+          <span id="joined"></span>
+        </div>
+      </div>
+
+      <a id="viewBtn" class="view-btn" href="#" target="_blank">
+        View on GitHub →
+      </a>
+    </div>
+
     <script>
-      const btn = document.querySelector("#getprofile");
-      btn.addEventListener("click", () => {
-        const username = document.querySelector("#username").value;
+      /*
+        TASK 4: GitHub Profile Finder
+        ================================
+        CONCEPTS PRACTICED:
+        - fetch() with .then() promise chaining
+        - Parsing JSON response with res.json()
+        - Updating existing DOM elements (instead of creating new ones)
+        - Showing/hiding elements with display style
+        - Error handling with .catch()
+
+        GITHUB API:
+        - Endpoint: https://api.github.com/users/{username}
+        - No API key needed for basic public data
+        - Rate limit: 60 requests/hour (unauthenticated)
+
+        KEY RESPONSE FIELDS:
+          data.avatar_url    → profile picture URL
+          data.name          → display name (can be null)
+          data.login         → username (always present)
+          data.bio           → user bio
+          data.public_repos  → number of public repos
+          data.followers     → follower count
+          data.following     → following count
+          data.location      → location string
+          data.blog          → website URL
+          data.created_at    → account creation date (ISO string)
+          data.html_url      → GitHub profile URL
+          data.message       → "Not Found" if user doesn't exist
+      */
+
+      const btn      = document.querySelector("#getprofile");
+      const input    = document.querySelector("#username");
+      const card     = document.querySelector("#profileCard");
+      const loader   = document.querySelector("#loader");
+      const errorDiv = document.querySelector("#error");
+
+      // Helper: show/hide elements
+      function showLoader()  { loader.style.display = "block"; card.style.display = "none"; errorDiv.style.display = "none"; }
+      function hideLoader()  { loader.style.display = "none"; }
+      function showError(msg){ errorDiv.style.display = "block"; errorDiv.textContent = msg; }
+
+      function fetchProfile() {
+        const username = input.value.trim();
+        if (!username) return; // do nothing if input is empty
+
+        showLoader();
+
         fetch(`https://api.github.com/users/${username}`)
           .then((res) => res.json())
           .then((data) => {
-            const img = document.createElement("img");
-            img.setAttribute("src", data.avatar_url);
+            hideLoader();
 
-            const h1 = document.createElement("h1");
-            h1.innerText = data.followers_url;
-            document.body.appendChild(h1);
-            document.body.appendChild(img);
+            // GitHub returns { message: "Not Found" } for invalid usernames
+            if (data.message === "Not Found") {
+              showError(`User "${username}" not found. Check the username and try again.`);
+              return;
+            }
+
+            // ── Populate card fields ──
+
+            // Avatar
+            document.getElementById("avatar").src = data.avatar_url;
+            document.getElementById("avatar").alt = `${data.login}'s avatar`;
+
+            // Name and username link
+            document.getElementById("fullName").textContent  = data.name || data.login;
+            document.getElementById("loginLink").textContent = `@${data.login}`;
+            document.getElementById("loginLink").href        = data.html_url;
+
+            // Bio (hide the element if no bio)
+            const bioEl = document.getElementById("bio");
+            bioEl.textContent    = data.bio || "";
+            bioEl.style.display  = data.bio ? "block" : "none";
+
+            // Stats
+            document.getElementById("repoCount").textContent      = data.public_repos;
+            document.getElementById("followerCount").textContent   = data.followers;
+            document.getElementById("followingCount").textContent  = data.following;
+
+            // Location (hide row if not set)
+            const locItem = document.getElementById("locationItem");
+            document.getElementById("location").textContent = data.location || "";
+            locItem.style.display = data.location ? "flex" : "none";
+
+            // Blog / website (hide row if not set)
+            const blogItem = document.getElementById("blogItem");
+            const blogEl   = document.getElementById("blog");
+            if (data.blog) {
+              // Ensure the URL has a protocol prefix for the href
+              const blogUrl = data.blog.startsWith("http") ? data.blog : `https://${data.blog}`;
+              blogEl.href        = blogUrl;
+              blogEl.textContent = data.blog;
+              blogItem.style.display = "flex";
+            } else {
+              blogItem.style.display = "none";
+            }
+
+            // Joined date — convert ISO string to readable format
+            // e.g. "2011-01-25T18:44:36Z" → "January 2011"
+            const joinedDate = new Date(data.created_at);
+            const formatted  = joinedDate.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+            document.getElementById("joined").textContent      = `Joined ${formatted}`;
+            document.getElementById("joinedItem").style.display = "flex";
+
+            // View on GitHub button
+            document.getElementById("viewBtn").href = data.html_url;
+
+            // Show the card
+            card.style.display = "block";
+          })
+          .catch((err) => {
+            hideLoader();
+            showError("Network error. Please check your connection.");
+            console.log(err);
           });
+      }
+
+      // Trigger on button click
+      btn.addEventListener("click", fetchProfile);
+
+      // Also trigger on Enter key
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") fetchProfile();
       });
     </script>
   </body>
