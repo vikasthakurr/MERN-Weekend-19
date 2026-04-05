@@ -1,8 +1,8 @@
 import React from "react";
 import Card from "./Card";
-import { lazy } from "react";
+// import { lazy } from "react";
 // import Skelton from "./Skelton";
-const Skelton= lazy(()=>"")
+// const Skelton= lazy(()=>"")
 import { useState, useEffect } from "react";
 
 const App = () => {
