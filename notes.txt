@@ -5,3 +5,8 @@ problems:https://docs.google.com/document/d/1-RK2a54-51gbyUXdNUghleTNaDmMcfPO8gN
 
 reudx:https://www.geeksforgeeks.org/reactjs/redux-and-the-flux-architecture/
 hyderation:https://redux-toolkit.js.org/rtk-query/usage/persistence-and-rehydration
+
+rest api-https://restfulapi.net/
+restvssoap:https://blog.postman.com/soap-vs-rest/
+
+useffect:https://medium.com/@a.pouryousefi98/react-lifecycles-with-useeffect-480e67d11eb2
