@@ -10,3 +10,5 @@ rest api-https://restfulapi.net/
 restvssoap:https://blog.postman.com/soap-vs-rest/
 
 useffect:https://medium.com/@a.pouryousefi98/react-lifecycles-with-useeffect-480e67d11eb2
+
+rateLimit:https://stripe.com/blog/rate-limiters

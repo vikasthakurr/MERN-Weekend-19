@@ -2,22 +2,24 @@ import express from "express";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import { loginLimitter } from "./rate-limit.js";
 
 const app = express();
 app.use(express.json());
 
+dotenv.config();
+
+const PORT = process.env.PORT || 5000;
 
 mongoose
-  .connect(
-    "mongodb+srv://vikaskumar20012001:Vikas123@dummy.oyfzhlq.mongodb.net/",
-  )
+  .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("connected to mongodb");
   })
   .catch((err) => {
     console.log(err);
-});
-
+  });
 
 const userSchema = new mongoose.Schema({
   email: String,
@@ -47,18 +49,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
-app.get("/allusers", async (req, res) => {
-  try {
-    const users = await User.find();
-    if (!users) return res.status(404).json({ message: "no users found" });
-    res.status(200).json({ users });
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "something went wrong" });
-  }
-});
-
-app.post("/login", async (req, res) => {
+app.post("/login", loginLimitter, async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -70,13 +61,16 @@ app.post("/login", async (req, res) => {
     if (!isMatched)
       return res.status(401).json({ message: "invalid credentials" });
 
-    const token = jwt.sign({ id: user._id }, "secretkey", { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id }, process.env.SECRET_JWT, {
+      expiresIn: "1h",
+    });
     res.cookie("token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       maxAge: 3600000,
     });
+    //send mail
     res.status(200).json({ message: "login successfull", token });
   } catch (err) {
     console.log(err);
@@ -84,6 +78,40 @@ app.post("/login", async (req, res) => {
   }
 });
 
+//middlware to verify token
+
+const verificationToken = (req, res, next) => {
+  const token = req.headers.authorization;
+  try {
+    if (!token || !token.startsWith("Bearer"))
+      return res
+        .status(401)
+        .json({ message: "token is not availble to process" });
+
+    const finalToken = token.split(" ")[1];
+
+    const isVerified = jwt.verify(finalToken, process.env.SECRET_JWT);
+
+    if (!isVerified) return res.status(401).json({ message: "unauthorized" });
+
+    req.user = isVerified;
+    next();
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "something went wrong" });
+  }
+};
+
+app.get("/allusers", verificationToken, async (req, res) => {
+  try {
+    const users = await User.find();
+    if (!users) return res.status(404).json({ message: "no users found" });
+    res.status(200).json({ users });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "something went wrong" });
+  }
+});
 app.delete("/delete/:id", async (req, res) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.id);
@@ -114,6 +142,6 @@ app.put("/update/:id", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("server started");
+app.listen(PORT, () => {
+  console.log(`server started on port ${process.env.PORT}`);
 });
