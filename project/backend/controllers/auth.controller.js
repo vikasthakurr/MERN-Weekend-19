@@ -93,9 +93,9 @@ export const login = asyncHandler(async (req, res, next) => {
   }
 
   const token = jwt.sign(
-    { _id: user._id, role: user.role },
+    { _id: user._id, role: user.role, email: user.email },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN },
+    { expiresIn: process.env.JWT_EXPIRES_IN }
   );
 
   const cookieOptions = {
