@@ -1,7 +1,10 @@
 import express from "express";
-import { getAllUsers, updateUser, deleteUser } from "../controllers/users.controller.js";
+import { getAllUsers } from "../controllers/user/getAllUsers.controller.js";
+import { updateUser } from "../controllers/user/updateUser.controller.js";
+import { deleteUser } from "../controllers/user/deleteUser.controller.js";
 import { getAllUsersLimiter, updateProfileLimiter, deleteProfileLimiter } from "../config/rateLimit.config.js";
 import verificationToken from "../middleware/verifyToken.middle.js";
+import isAdmin from "../middleware/isAdmin.middle.js";
 
 const usersRouter = express.Router();
 
