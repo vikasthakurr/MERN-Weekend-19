@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --color-primary: #000000;
+  --color-secondary: #FFFFFF;
+  --color-accent: #FF3333;
+  --color-bg-gray: #F2F0F1;
+  --color-text-gray: #00000099;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-secondary);
+  color: var(--color-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6, .font-integral {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+}
+
+@theme {
+  --color-black: #000000;
+  --color-white: #FFFFFF;
+  --color-red: #FF3333;
+  --color-gray-100: #F2F0F1;
+  --color-gray-200: #F0EEED;
+  --color-gray-400: #00000066;
+  --color-gray-600: #00000099;
+}
+
+@layer base {
+  button {
+    @apply cursor-pointer transition-all active:scale-95;
+  }
+}
+
+.product-card-img {
+  @apply bg-gray-100 rounded-2xl overflow-hidden;
+}
+
+.btn-black {
+  @apply bg-black text-white px-8 py-3 rounded-full font-medium hover:bg-black/80 transition-all;
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+}
