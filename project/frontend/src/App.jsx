@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import Orders from "./pages/Orders";
 
+
 function App() {
   const [user, setUser] = useState(null);
 
@@ -15,7 +16,9 @@ function App() {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUser(JSON.parse(storedUser));
+      // eslint-disable-next-line no-unused-vars
       } catch (e) {
         console.error("Failed to parse user from localStorage");
       }
