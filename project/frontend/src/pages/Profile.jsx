@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { User, Mail, Shield, Calendar, Settings } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-const Profile = ({ user }) => {
+const Profile = () => {
+  const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
 
   return (

@@ -3,12 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, AlertCircle } from "lucide-react";
 import api from "../utils/api";
+import { useAuth } from "../context/AuthContext";
 
-const Login = ({ onLoginSuccess }) => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,11 +18,7 @@ const Login = ({ onLoginSuccess }) => {
     try {
       const response = await api.post("/auth/v1/login", { email, password });
       const { user, token } = response.data;
-      
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", token);
-      
-      onLoginSuccess(user);
+      login(user, token);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
