@@ -3,7 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectCartItems, selectCartTotal, clearCart } from "../store/cartSlice";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ChevronLeft, CreditCard, Truck, CheckCircle } from "lucide-react";
+import { ChevronLeft, CreditCard, Truck, CheckCircle, Loader2 } from "lucide-react";
+import api from "../utils/api";
 
 // ── Step indicators ──────────────────────────────────────────────────────────
 const STEPS = ["Shipping", "Payment", "Review"];
@@ -46,7 +47,29 @@ const Field = ({ label, type = "text", value, onChange, placeholder, required })
   </div>
 );
 
-// ── Step 0 — Shipping ────────────────────────────────────────────────────────
+// ── Luhn algorithm — validates card number checksum ─────────────────────────
+const luhn = (num) => {
+  const digits = num.replace(/\s/g, "");
+  let sum = 0;
+  let alt = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = parseInt(digits[i], 10);
+    if (alt) { n *= 2; if (n > 9) n -= 9; }
+    sum += n;
+    alt = !alt;
+  }
+  return sum % 10 === 0;
+};
+
+// ── Expiry validation — MM/YY must be in the future ──────────────────────────
+const validExpiry = (val) => {
+  if (val.length !== 5) return false;
+  const [mm, yy] = val.split("/").map(Number);
+  if (!mm || mm < 1 || mm > 12) return false;
+  const now = new Date();
+  const exp = new Date(2000 + yy, mm - 1, 1);
+  return exp > now;
+};
 const ShippingStep = ({ data, onChange, onNext }) => {
   const handle = (field) => (val) => onChange({ ...data, [field]: val });
 
@@ -101,7 +124,14 @@ const PaymentStep = ({ data, onChange, onNext, onBack }) => {
     handle("expiry")(formatted);
   };
 
-  const valid = data.cardNumber?.replace(/\s/g, "").length === 16 && data.expiry?.length === 5 && data.cvv?.length >= 3 && data.nameOnCard;
+  // Bug fix: Luhn + expiry validation instead of length-only check
+  const cardDigits = data.cardNumber?.replace(/\s/g, "") ?? "";
+  const valid =
+    data.nameOnCard?.trim() &&
+    cardDigits.length === 16 &&
+    luhn(cardDigits) &&
+    validExpiry(data.expiry ?? "") &&
+    data.cvv?.length >= 3;
 
   return (
     <form
@@ -157,51 +187,85 @@ const PaymentStep = ({ data, onChange, onNext, onBack }) => {
 };
 
 // ── Step 2 — Review ──────────────────────────────────────────────────────────
-const ReviewStep = ({ shipping, items, total, onBack, onConfirm }) => (
-  <div className="space-y-6">
-    <h2 className="text-lg font-black uppercase tracking-tight">Review Your Order</h2>
+const ReviewStep = ({ shipping, items, total, onBack, onConfirm }) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-    {/* Items */}
-    <div className="space-y-3">
-      {items.map((item) => (
-        <div key={item._id} className="flex items-center gap-4 bg-gray-50 rounded-2xl p-3">
-          <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover bg-gray-200 shrink-0" />
-          <div className="flex-grow min-w-0">
-            <p className="font-bold text-xs uppercase tracking-tight line-clamp-1">{item.name}</p>
-            <p className="text-gray-500 text-xs mt-0.5">Qty: {item.quantity}</p>
+  const handleConfirm = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await onConfirm(); // async — calls API
+    } catch (err) {
+      setError(err.message ?? "Something went wrong");
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-black uppercase tracking-tight">Review Your Order</h2>
+
+      {/* Items */}
+      <div className="space-y-3">
+        {items.map((item) => (
+          <div key={item._id} className="flex items-center gap-4 bg-gray-50 rounded-2xl p-3">
+            <img src={item.image} alt={item.name} className="w-14 h-14 rounded-xl object-cover bg-gray-200 shrink-0" />
+            <div className="flex-grow min-w-0">
+              <p className="font-bold text-xs uppercase tracking-tight line-clamp-1">{item.name}</p>
+              <p className="text-gray-500 text-xs mt-0.5">Qty: {item.quantity}</p>
+            </div>
+            <span className="font-black text-sm shrink-0">${(item.price * item.quantity).toFixed(2)}</span>
           </div>
-          <span className="font-black text-sm shrink-0">${(item.price * item.quantity).toFixed(2)}</span>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
 
-    {/* Shipping summary */}
-    <div className="bg-gray-50 rounded-2xl p-4 space-y-1 text-sm">
-      <p className="font-bold uppercase tracking-wider text-xs text-gray-500 mb-2">Ship to</p>
-      <p className="font-bold">{shipping.fullName}</p>
-      <p className="text-gray-600">{shipping.address}, {shipping.city} {shipping.zip}</p>
-      <p className="text-gray-600">{shipping.country}</p>
-      <p className="text-gray-600">{shipping.email}</p>
-    </div>
+      {/* Shipping summary */}
+      <div className="bg-gray-50 rounded-2xl p-4 space-y-1 text-sm">
+        <p className="font-bold uppercase tracking-wider text-xs text-gray-500 mb-2">Ship to</p>
+        <p className="font-bold">{shipping.fullName}</p>
+        <p className="text-gray-600">{shipping.address}, {shipping.city} {shipping.zip}</p>
+        <p className="text-gray-600">{shipping.country}</p>
+        <p className="text-gray-600">{shipping.email}</p>
+      </div>
 
-    {/* Total */}
-    <div className="flex justify-between items-center text-lg font-black border-t border-gray-100 pt-4">
-      <span>Total</span>
-      <span>${total.toFixed(2)}</span>
-    </div>
+      {/* Total */}
+      <div className="flex justify-between items-center text-lg font-black border-t border-gray-100 pt-4">
+        <span>Total</span>
+        <span>${total.toFixed(2)}</span>
+      </div>
 
-    <div className="flex gap-3">
-      <button onClick={onBack}
-        className="flex-1 border-2 border-gray-200 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all">
-        Back
-      </button>
-      <button onClick={onConfirm}
-        className="flex-[2] bg-black text-white py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:bg-black/90 transition-all">
-        Place Order
-      </button>
+      {error && (
+        <p className="text-red-500 text-sm font-medium text-center">{error}</p>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={onBack}
+          disabled={submitting}
+          className="flex-1 border-2 border-gray-200 py-4 rounded-full font-bold text-sm uppercase tracking-widest hover:bg-gray-50 transition-all disabled:opacity-40"
+        >
+          Back
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={submitting}
+          className="flex-[2] bg-black text-white py-4 rounded-full font-bold text-sm tracking-widest uppercase hover:bg-black/90 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+        >
+          {submitting ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Placing Order…
+            </>
+          ) : (
+            "Place Order"
+          )}
+        </button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ── Success screen ───────────────────────────────────────────────────────────
 const OrderSuccess = () => (
@@ -231,17 +295,24 @@ const Checkout = () => {
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
-  const [done, setDone] = useState(false);
 
   const [shipping, setShipping] = useState({
-    fullName: "", email: "", address: "", city: "", zip: "", country: "",
+    fullName: "John Doe",
+    email: "john@example.com",
+    address: "123 Main Street",
+    city: "New York",
+    zip: "10001",
+    country: "United States",
   });
   const [payment, setPayment] = useState({
-    nameOnCard: "", cardNumber: "", expiry: "", cvv: "",
+    nameOnCard: "John Doe",
+    cardNumber: "4532 0151 1283 0366", // valid Luhn test card
+    expiry: "12/26",
+    cvv: "123",
   });
 
   // Guard — redirect to cart if empty
-  if (items.length === 0 && !done) {
+  if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
         <p className="text-xl font-black uppercase">Your cart is empty</p>
@@ -252,11 +323,16 @@ const Checkout = () => {
     );
   }
 
-  if (done) return <OrderSuccess />;
-
-  const handleConfirm = () => {
+  // Called by ReviewStep — posts to backend, clears cart, navigates to orders
+  const handleConfirm = async () => {
+    const payload = {
+      items: items.map(({ _id, name, price, quantity }) => ({ name, price, quantity, productId: _id })),
+      totalAmount: total,
+      shippingAddress: shipping,
+    };
+    const { data } = await api.post("/orders/v1/create", payload);
     dispatch(clearCart());
-    setDone(true);
+    navigate("/orders", { state: { newOrder: data.data } });
   };
 
   return (

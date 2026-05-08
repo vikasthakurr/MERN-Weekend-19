@@ -29,8 +29,18 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   }, []);
 
+  // Update user fields (username, email, avatar, etc.) and persist to localStorage
+  // Pass `persist: false` to skip localStorage (e.g. after API already confirmed)
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...patch };
+      localStorage.setItem(USER_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

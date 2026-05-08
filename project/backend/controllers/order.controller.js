@@ -6,46 +6,38 @@ import { sendEmail } from "../utils/email.utils.js";
 
 // Create Order
 export const createOrder = asyncHandler(async (req, res) => {
-  const { items, totalAmount } = req.body;
+  const { items, totalAmount, shippingAddress } = req.body;
 
   if (!items || items.length === 0) {
     throw new ApiError(400, "No items in order");
   }
 
-  // Create Razorpay Order
-  const razorpayOrder = await createRazorpayOrder(
-    totalAmount,
-    "INR",
-    `receipt_${Date.now()}`
-  );
-
+  // Skip Razorpay for now — mark payment as completed directly
   const order = await Order.create({
     user: req.user._id,
     items,
     totalAmount,
-    razorpayOrderId: razorpayOrder.id,
-    paymentStatus: "pending",
+    shippingAddress,
+    paymentStatus: "completed",
+    orderStatus: "processing",
   });
 
-  // Send Order Initiation Email
+  // Send confirmation email (non-blocking)
   try {
     await sendEmail({
       email: req.user.email,
-      subject: "Order Placed - Payment Pending",
-      message: `Your order for ${totalAmount} INR has been placed. Please complete the payment.`,
-      html: `<h2>Order Placed!</h2><p>Your order for <strong>${totalAmount} INR</strong> has been initiated. Razorpay Order ID: ${razorpayOrder.id}</p><p>Please complete your payment to process the order.</p>`,
+      subject: "Order Confirmed — SHOP.CO",
+      message: `Your order #${order._id} for $${totalAmount} has been placed successfully.`,
+      html: `<h2>Order Confirmed!</h2><p>Your order <strong>#${order._id}</strong> for <strong>$${totalAmount}</strong> has been placed and is being processed.</p>`,
     });
   } catch (emailError) {
-    console.error("Order initiation email failed:", emailError);
+    console.error("Order confirmation email failed:", emailError);
   }
 
   res.status(201).json({
     success: true,
-    message: "Order initiated successfully",
-    data: {
-      order,
-      razorpayOrder, // Return this to frontend to trigger Razorpay checkout
-    },
+    message: "Order placed successfully",
+    data: order,
   });
 });
 

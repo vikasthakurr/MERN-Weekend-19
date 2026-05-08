@@ -34,6 +34,14 @@ const orderSchema = new mongoose.Schema(
     razorpayPaymentId: {
       type: String,
     },
+    shippingAddress: {
+      fullName: String,
+      email:    String,
+      address:  String,
+      city:     String,
+      zip:      String,
+      country:  String,
+    },
   },
   { timestamps: true }
 );

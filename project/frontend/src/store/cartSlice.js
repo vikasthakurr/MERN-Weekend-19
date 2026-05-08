@@ -28,13 +28,17 @@ const cartSlice = createSlice({
         }
       }
     },
+    // Bug fix: single action to remove an item entirely — avoids looping decrease()
+    removeItem: (state, action) => {
+      state.items = state.items.filter((i) => i._id !== action.payload);
+    },
     clearCart: (state) => {
       state.items = [];
     },
   },
 });
 
-export const { addToCart, increase, decrease, clearCart } = cartSlice.actions;
+export const { addToCart, increase, decrease, removeItem, clearCart } = cartSlice.actions;
 
 // Selectors
 export const selectCartItems = (state) => state.cart.items;

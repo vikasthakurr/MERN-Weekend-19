@@ -19,7 +19,8 @@ const Login = () => {
       const response = await api.post("/auth/v1/login", { email, password });
       const { user, token } = response.data;
       login(user, token);
-      navigate("/");
+      // Redirect admin to dashboard, regular users to home
+      navigate(user.role === "admin" ? "/admin" : "/");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
     }

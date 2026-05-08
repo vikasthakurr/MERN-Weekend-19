@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { increase, decrease, clearCart, selectCartItems, selectCartTotal } from "../store/cartSlice";
+import { increase, decrease, removeItem, clearCart, selectCartItems, selectCartTotal } from "../store/cartSlice";
 import { Link, useNavigate } from "react-router-dom";
 
 const Cart = () => {
@@ -40,21 +40,22 @@ const Cart = () => {
         <h1 className="text-4xl font-black uppercase tracking-tighter">Your Cart</h1>
         <button
           onClick={() => dispatch(clearCart())}
-          className="text-sm font-bold text-red-500 hover:underline flex items-center space-x-1"
+          className="text-sm font-bold text-red-500 hover:underline flex items-center gap-1.5"
         >
           <Trash2 size={16} />
           <span>Clear All</span>
         </button>
       </div>
 
-      <div className="space-y-4">
+      {/* Bug fix: AnimatePresence required for exit animations to actually run */}
+      <AnimatePresence initial={false}>
         {items.map((item) => (
           <motion.div
             key={item._id}
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            exit={{ opacity: 0, x: -40, transition: { duration: 0.2 } }}
             className="flex items-center gap-6 bg-gray-50 rounded-[20px] p-4"
           >
             {/* Image */}
@@ -62,6 +63,7 @@ const Cart = () => {
               <img
                 src={item.image}
                 alt={item.name}
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -79,6 +81,7 @@ const Cart = () => {
               <div className="flex items-center bg-black rounded-full px-2 py-1 space-x-2">
                 <button
                   onClick={() => dispatch(decrease(item._id))}
+                  aria-label="Decrease quantity"
                   className="w-7 h-7 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
                 >
                   <Minus size={13} />
@@ -88,6 +91,7 @@ const Cart = () => {
                 </span>
                 <button
                   onClick={() => dispatch(increase(item._id))}
+                  aria-label="Increase quantity"
                   className="w-7 h-7 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors"
                 >
                   <Plus size={13} />
@@ -99,14 +103,9 @@ const Cart = () => {
                 ${(item.price * item.quantity).toFixed(2)}
               </span>
 
-              {/* Remove */}
               <button
-                onClick={() => {
-                  // decrease until gone — or dispatch decrease which removes at qty 1
-                  for (let i = 0; i < item.quantity; i++) {
-                    dispatch(decrease(item._id));
-                  }
-                }}
+                onClick={() => dispatch(removeItem(item._id))}
+                aria-label="Remove item"
                 className="text-red-400 hover:text-red-600 transition-colors"
               >
                 <Trash2 size={18} />
@@ -114,7 +113,7 @@ const Cart = () => {
             </div>
           </motion.div>
         ))}
-      </div>
+      </AnimatePresence>
 
       {/* Order Summary */}
       <div className="bg-gray-50 rounded-[24px] p-8 space-y-6">
