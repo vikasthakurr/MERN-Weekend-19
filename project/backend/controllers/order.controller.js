@@ -12,32 +12,32 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new ApiError(400, "No items in order");
   }
 
-  // Skip Razorpay for now — mark payment as completed directly
+  // Create Razorpay order first
+  // Razorpay receipt max length is 40 chars
+  const receipt = `rcpt_${Date.now()}`;
+  const razorpayOrder = await createRazorpayOrder(totalAmount, "INR", receipt);
+
+  // Save order as pending until payment is verified
   const order = await Order.create({
     user: req.user._id,
     items,
     totalAmount,
     shippingAddress,
-    paymentStatus: "completed",
+    paymentStatus: "pending",
     orderStatus: "processing",
+    razorpayOrderId: razorpayOrder.id,
   });
-
-  // Send confirmation email (non-blocking)
-  try {
-    await sendEmail({
-      email: req.user.email,
-      subject: "Order Confirmed — SHOP.CO",
-      message: `Your order #${order._id} for $${totalAmount} has been placed successfully.`,
-      html: `<h2>Order Confirmed!</h2><p>Your order <strong>#${order._id}</strong> for <strong>$${totalAmount}</strong> has been placed and is being processed.</p>`,
-    });
-  } catch (emailError) {
-    console.error("Order confirmation email failed:", emailError);
-  }
 
   res.status(201).json({
     success: true,
-    message: "Order placed successfully",
-    data: order,
+    message: "Order initiated",
+    data: {
+      orderId: order._id,
+      razorpayOrderId: razorpayOrder.id,
+      amount: razorpayOrder.amount,       // in paise
+      currency: razorpayOrder.currency,
+      keyId: process.env.PAYMENT_API_KEY, // frontend needs this to open modal
+    },
   });
 });
 

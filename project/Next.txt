@@ -1,0 +1,51 @@
+High priority — core e-commerce gaps
+
+Product detail page (/product/:id) — images, description, reviews, related products, add to cart
+Product filters & sorting — by category, price range, rating; sort by newest/price/popularity
+Categories page — browse by category with filtered grid
+Wishlist / saved items — heart icon on cards, /wishlist page
+Stock management — quantity limits on cart, "Out of stock" badge
+Order cancellation — cancel button on processing orders
+Password change — separate field on profile page
+Auth & security
+
+Forgot password flow — email OTP → reset password
+Email verification on signup
+Remember me / session expiry handling
+Google / OAuth login
+Admin dashboard gaps
+
+Add / edit / delete products — modal form with image upload
+Real orders management — view all orders, update status (processing → shipped → delivered)
+Revenue calculation from actual order data
+User role toggle — promote/demote admin from UI
+Dashboard charts — sales over time, top products, revenue graph (recharts or chart.js)
+Pagination on users and products tables
+UX improvements
+
+Mobile menu — hamburger opens a slide-in drawer
+Mobile search overlay — full-screen search on mobile
+Toast notifications — replace alert()/confirm() with proper toasts (react-hot-toast)
+404 page — proper not-found instead of redirect to home
+Error boundary — catch unhandled errors gracefully
+Product image gallery — multiple images with thumbnail switcher on detail page
+Breadcrumbs — Home > Category > Product
+Performance & quality
+
+Pagination or cursor-based loading on backend instead of loading all products at once
+Image optimization — Cloudinary upload for avatars and product images
+Skeleton loaders on Orders, Profile, Admin pages (currently only Home has them)
+React Query or SWR — replace manual useEffect fetch patterns with caching + revalidation
+Checkout & payments
+
+Razorpay / Stripe integration — actual payment processing
+Coupon / discount codes
+Multiple saved addresses
+Order confirmation email (nodemailer is already set up on backend)
+Invoice / receipt download as PDF
+Social / engagement
+
+Product reviews and ratings — star rating + comment, stored in DB
+Recently viewed products
+"Customers also bought" recommendations
+Share product link

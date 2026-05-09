@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import Cart from "./pages/Cart";
 import Orders from "./pages/Orders";
 import Checkout from "./pages/Checkout";
+import Categories from "./pages/Categories";
 
 // Admin pages
 import Dashboard from "./admin/pages/Dashboard";
@@ -55,9 +56,11 @@ function App() {
                       <Route path="/login"    element={<Login />} />
                       <Route path="/signup"   element={<Signup />} />
                       <Route path="/profile"  element={<PrivateRoute><Profile /></PrivateRoute>} />
-                      <Route path="/cart"     element={<Cart />} />
-                      <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
-                      <Route path="/orders"   element={<PrivateRoute><Orders /></PrivateRoute>} />
+                      <Route path="/cart"       element={<Cart />} />
+                      <Route path="/checkout"   element={<PrivateRoute><Checkout /></PrivateRoute>} />
+                      <Route path="/orders"     element={<PrivateRoute><Orders /></PrivateRoute>} />
+                      <Route path="/categories" element={<Categories />} />
+                      <Route path="/categories/:category" element={<Categories />} />
                       <Route path="*"         element={<Navigate to="/" replace />} />
                     </Routes>
                   </main>

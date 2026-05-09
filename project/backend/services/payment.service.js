@@ -1,12 +1,12 @@
 import Razorpay from "razorpay";
 import crypto from "crypto";
-import dotenv from "dotenv";
-dotenv.config({ path: "./env/.env" });
 
-const razorpay = new Razorpay({
-  key_id: process.env.PAYMENT_API_KEY,
-  key_secret: process.env.PAYMENT_API_SECRET,
-});
+// Lazily create the Razorpay instance so env vars are guaranteed to be loaded
+const getRazorpay = () =>
+  new Razorpay({
+    key_id: process.env.PAYMENT_API_KEY,
+    key_secret: process.env.PAYMENT_API_SECRET,
+  });
 
 /**
  * Creates a Razorpay order.
@@ -16,18 +16,24 @@ const razorpay = new Razorpay({
  * @returns {Promise<object>} - Razorpay order object.
  */
 export const createRazorpayOrder = async (amount, currency = "INR", receipt) => {
+  // Razorpay works in subunits (paise). Minimum order is 100 paise (₹1).
+  const amountInPaise = Math.round(amount * 100);
+  if (amountInPaise < 100) {
+    throw new Error(`Amount too small: ${amountInPaise} paise. Minimum is 100 paise.`);
+  }
+
   const options = {
-    amount: Math.round(amount * 100), // Razorpay works in subunits (paise for INR)
+    amount: amountInPaise,
     currency,
     receipt,
   };
 
   try {
-    const order = await razorpay.orders.create(options);
+    const order = await getRazorpay().orders.create(options);
     return order;
   } catch (error) {
-    console.error("Razorpay order creation error:", error);
-    throw new Error("Failed to create Razorpay order");
+    console.error("Razorpay order creation error:", JSON.stringify(error, null, 2));
+    throw new Error(`Failed to create Razorpay order: ${error?.error?.description ?? error?.message ?? JSON.stringify(error)}`);
   }
 };
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { selectCartItems, selectCartTotal, clearCart } from "../store/cartSlice";
 import { Link, useNavigate } from "react-router-dom";
@@ -296,6 +296,16 @@ const Checkout = () => {
 
   const [step, setStep] = useState(0);
 
+  // Load Razorpay checkout script once
+  useEffect(() => {
+    if (window.Razorpay) return;
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => { document.body.removeChild(script); };
+  }, []);
+
   const [shipping, setShipping] = useState({
     fullName: "John Doe",
     email: "john@example.com",
@@ -323,17 +333,63 @@ const Checkout = () => {
     );
   }
 
-  // Called by ReviewStep — posts to backend, clears cart, navigates to orders
-  const handleConfirm = async () => {
-    const payload = {
-      items: items.map(({ _id, name, price, quantity }) => ({ name, price, quantity, productId: _id })),
-      totalAmount: total,
-      shippingAddress: shipping,
-    };
-    const { data } = await api.post("/orders/v1/create", payload);
-    dispatch(clearCart());
-    navigate("/orders", { state: { newOrder: data.data } });
-  };
+  // Called by ReviewStep — creates order → opens Razorpay modal → verifies payment
+  const handleConfirm = () =>
+    new Promise(async (resolve, reject) => {
+      try {
+        // Step 1: Create pending order + get Razorpay order details
+        const payload = {
+          items: items.map(({ _id, name, price, quantity }) => ({ name, price, quantity, productId: _id })),
+          totalAmount: total,
+          shippingAddress: shipping,
+        };
+        const { data: createRes } = await api.post("/orders/v1/create", payload);
+        const { razorpayOrderId, amount, currency, keyId } = createRes.data;
+
+        // Step 2: Open Razorpay checkout modal
+        const options = {
+          key: keyId,
+          amount,
+          currency,
+          name: "SHOP.CO",
+          description: "Order Payment",
+          order_id: razorpayOrderId,
+          prefill: {
+            name: shipping.fullName,
+            email: shipping.email,
+          },
+          theme: { color: "#000000" },
+
+          // Step 3: On payment success — verify signature with backend
+          handler: async (response) => {
+            try {
+              const { data: verifyRes } = await api.post("/orders/v1/verify-payment", {
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+              });
+              dispatch(clearCart());
+              navigate("/orders", { state: { newOrder: verifyRes.data } });
+              resolve();
+            } catch (err) {
+              reject(new Error(err?.response?.data?.message ?? "Payment verification failed"));
+            }
+          },
+
+          modal: {
+            ondismiss: () => reject(new Error("Payment cancelled")),
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on("payment.failed", (response) => {
+          reject(new Error(response.error?.description ?? "Payment failed"));
+        });
+        rzp.open();
+      } catch (err) {
+        reject(new Error(err?.response?.data?.message ?? err.message ?? "Failed to initiate payment"));
+      }
+    });
 
   return (
     <div className="max-w-2xl mx-auto py-16 px-4">

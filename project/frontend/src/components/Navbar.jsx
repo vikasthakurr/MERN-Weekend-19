@@ -47,6 +47,7 @@ const Navbar = () => {
             <span>Shop</span>
             <ChevronDown size={16} />
           </Link>
+          <Link to="/categories"    className="hover:text-gray-600 transition-colors">Categories</Link>
           <Link to="/#on-sale"      className="hover:text-gray-600 transition-colors">On Sale</Link>
           <Link to="/#new-arrivals" className="hover:text-gray-600 transition-colors">New Arrivals</Link>
           <Link to="/#brands"       className="hover:text-gray-600 transition-colors">Brands</Link>
